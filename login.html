@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login System with History Log</title>
+    <style>
+        /* --- CSS STYLING --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            width: 850px;
+            height: 550px;
+            display: flex;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* LEFT SIDE */
+        .social-side {
+            width: 35%;
+            background: #2c3e50;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .social-btn {
+            width: 100%;
+            max-width: 180px;
+            padding: 10px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .google { background: #db4437; }
+        .facebook { background: #4267B2; }
+        .twitter { background: #1DA1F2; }
+
+        .admin-toggle-btn {
+            position: absolute;
+            bottom: 20px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* RIGHT SIDE */
+        .form-side {
+            width: 65%;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .input-group { margin-bottom: 15px; }
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 12px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        /* ADMIN LIST STYLES */
+        .log-container {
+            margin-top: 15px;
+            border: 1px solid #eee;
+            background: #fafafa;
+            height: 200px;
+            overflow-y: auto; /* Allows scrolling */
+            border-radius: 5px;
+            padding: 10px;
+        }
+        
+        .log-item {
+            border-bottom: 1px solid #e0e0e0;
+            padding: 8px 0;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .log-name { font-weight: bold; color: #333; }
+        .log-time { color: #888; font-size: 12px; }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="social-side">
+    <h2>Connect</h2>
+    <button class="social-btn google" onclick="handleSocialLogin('Google')">Login with Google</button>
+    <button class="social-btn facebook" onclick="handleSocialLogin('Facebook')">Login with Facebook</button>
+    <button class="social-btn twitter" onclick="handleSocialLogin('Twitter')">Login with Twitter</button>
+    
+
+            <button class="admin-toggle-btn" onclick="toggleAdminMode()">Admin Access</button>
+        </div>
+
+        <div class="form-side">
+            
+            <div id="loginForm">
+                <h2>User Login</h2>
+                <div class="input-group"><input type="email" id="loginEmail" placeholder="Email"></div>
+                <div class="input-group"><input type="password" id="loginPass" placeholder="Password"></div>
+                <button class="action-btn" onclick="handleLogin()">Login</button>
+                <div style="margin-top:15px; text-align:center;">
+                    <a href="#" onclick="showSignup()" style="color:#2980b9;">Create Account</a>
+                </div>
+            </div>
+
+            <div id="signupForm" class="hidden">
+                <h2>Sign Up</h2>
+                <div class="input-group"><input type="text" id="signupName" placeholder="Full Name"></div>
+                <div class="input-group"><input type="email" id="signupEmail" placeholder="Email"></div>
+                <div class="input-group"><input type="password" id="signupPass" placeholder="Password"></div>
+                <button class="action-btn" onclick="handleSignup()">Register</button>
+                <div style="margin-top:15px; text-align:center;">
+                    <a href="#" onclick="showLogin()" style="color:#2980b9;">Back to Login</a>
+                </div>
+            </div>
+
+            <div id="adminLoginForm" class="hidden">
+                <h2 style="color:#c0392b;">Admin Login</h2>
+                <div class="input-group"><input type="text" id="adminUser" placeholder="Username"></div>
+                <div class="input-group"><input type="password" id="adminPass" placeholder="Password"></div>
+                <button class="action-btn" style="background:#c0392b;" onclick="handleAdminLogin()">Access Logs</button>
+                <div style="margin-top:15px; text-align:center;">
+                    <a href="#" onclick="showLogin()" style="color:#555;">Cancel</a>
+                </div>
+            </div>
+
+            <div id="adminDashboard" class="hidden">
+                <h2 style="color:#2c3e50;">Login History</h2>
+                <p>List of recent user logins:</p>
+                
+                <div class="log-container" id="logList">
+                    </div>
+
+                <div style="margin-top: 15px; display:flex; justify-content:space-between;">
+                    <button onclick="clearHistory()" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:3px; cursor:pointer;">Clear Logs</button>
+                    <button onclick="showLogin()" style="background:#95a5a6; color:white; border:none; padding:5px 10px; border-radius:3px; cursor:pointer;">Logout</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- Navigation ---
+        const loginForm = document.getElementById('loginForm');
+        const signupForm = document.getElementById('signupForm');
+        const adminLoginForm = document.getElementById('adminLoginForm');
+        const adminDashboard = document.getElementById('adminDashboard');
+
+        function hideAll() {
+            loginForm.classList.add('hidden');
+            signupForm.classList.add('hidden');
+            adminLoginForm.classList.add('hidden');
+            adminDashboard.classList.add('hidden');
+        }
+        function showLogin() { hideAll(); loginForm.classList.remove('hidden'); }
+        function showSignup() { hideAll(); signupForm.classList.remove('hidden'); }
+        function toggleAdminMode() { hideAll(); adminLoginForm.classList.remove('hidden'); }
+
+        // --- USER LOGIC ---
+        function handleSignup() {
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const pass = document.getElementById('signupPass').value;
+
+            if(name && email && pass) {
+                const user = { name, email, password: pass };
+                localStorage.setItem('user_data', JSON.stringify(user));
+                alert("Signup Successful! Please Login.");
+                showLogin();
+            } else {
+                alert("Fill all fields");
+            }
+        }
+
+        function handleLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPass').value;
+            const storedData = localStorage.getItem('user_data');
+
+            if(storedData) {
+                const userData = JSON.parse(storedData);
+                if(email === userData.email && pass === userData.password) {
+                    
+                    // --- SAVE TO HISTORY LIST ---
+                    addToHistory(userData.name);
+
+                    alert("Welcome " + userData.name);
+                } else {
+                    alert("Invalid Credentials");
+                }
+            } else {
+                alert("No user found");
+            }
+        }
+
+        // --- NEW FUNCTION: Add name to History Array ---
+        function addToHistory(userName) {
+            // 1. Get existing history or empty array
+            let history = JSON.parse(localStorage.getItem('login_history') || '[]');
+            
+            // 2. Add new entry with Name and Date
+            let newEntry = {
+                name: userName,
+                time: new Date().toLocaleTimeString()
+            };
+            
+            // 3. Add to beginning of array (newest first)
+            history.unshift(newEntry);
+            
+            // 4. Save back to storage
+            localStorage.setItem('login_history', JSON.stringify(history));
+        }
+
+        // --- ADMIN LOGIC ---
+        function handleAdminLogin() {
+            const u = document.getElementById('adminUser').value;
+            const p = document.getElementById('adminPass').value;
+
+            if(u === "weather" && p === "12345") {
+                hideAll();
+                adminDashboard.classList.remove('hidden');
+                loadDashboardLogs();
+            } else {
+                alert("Wrong Admin Password");
+            }
+        }
+
+        //handling the social medai user login
+
+        // --- NEW SOCIAL LOGIN SIMULATION ---
+function handleSocialLogin(provider) {
+    // 1. Simulate getting user info (In a real app, this comes from Google/FB)
+    const socialUser = prompt(`Enter your ${provider} Username to continue:`);
+
+    if (socialUser) {
+        // 2. Create a special name indicating the provider
+        const displayName = `${socialUser} (via ${provider})`;
+
+        // 3. Save to the Admin History Log
+        addToHistory(displayName);
+
+        // 4. Show success message
+        alert(`Successfully logged in with ${provider}! Welcome, ${socialUser}.`);
+    }
+}
+        // --- RENDER THE LIST ---
+        function loadDashboardLogs() {
+            const listContainer = document.getElementById('logList');
+            const history = JSON.parse(localStorage.getItem('login_history') || '[]');
+
+            // Clear previous list
+            listContainer.innerHTML = '';
+
+            if(history.length === 0) {
+                listContainer.innerHTML = '<div style="padding:10px; color:#999;">No logins recorded yet.</div>';
+                return;
+            }
+
+            // Loop through history and create HTML elements
+            history.forEach(entry => {
+                const item = document.createElement('div');
+                item.className = 'log-item';
+                item.innerHTML = `
+                    <span class="log-name">${entry.name}</span>
+                    <span class="log-time">${entry.time}</span>
+                `;
+                listContainer.appendChild(item);
+            });
+        }
+
+        function clearHistory() {
+            if(confirm("Delete all login logs?")) {
+                localStorage.removeItem('login_history');
+                loadDashboardLogs();
+            }
+        }
+    </script>
+</body>
+</html>
